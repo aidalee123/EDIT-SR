@@ -31,15 +31,6 @@ model_path: Exp_weights/Weight.ckpt
 
 > The evaluation scripts print results directly to stdout by default.
 
-## 🚀 Installation
-
-```bash
-git clone <your-repo-url>
-cd EditSR
-python -m pip install -e src
-```
-
-Recommended Python version: **3.10+**.
 
 ## ▶️ Training
 
