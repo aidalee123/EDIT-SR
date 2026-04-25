@@ -1,0 +1,200 @@
+# =============================================================================
+# Paths & Global Settings
+# =============================================================================
+train_path: data/train_data/10vars/100000
+val_path: data/val_data/10vars/100
+test_path: data/val_data/10vars/100
+model_path: Exp_weights\100000train_loss_-epoch=00-train_loss=0.48.ckpt
+wandb: true
+
+num_of_workers: 5
+val_check_interval: 1.0
+precision: 16
+gpu: cuda
+
+# =============================================================================
+# Dataset Configurations
+# =============================================================================
+dataset_train:
+  stress_distractor_enable: True
+  total_variables: None
+  n_clusters : [1,1]
+  max_retry: 1
+  eps_limit: 1e30
+  max_number_of_points: 200
+  type_of_sampling_points: logarithm #logarithm
+  predict_c: True
+  constants:
+    num_constants: 3
+    additive:
+      max: 1
+      min: -1
+    multiplicative:
+      max: 1
+      min: -1
+
+dataset_val:
+  stress_distractor_enable: True
+  total_variables: None
+  n_clusters : [1,1]
+  max_retry: 10
+  eps_limit: 1e30
+  max_number_of_points: 200
+  type_of_sampling_points: constant
+  predict_c: True
+  constants:
+    num_constants: 3
+    additive:
+      max: 1
+      min: -1
+    multiplicative:
+      max: 1
+      min: -1
+
+dataset_test:
+  stress_distractor_enable: True
+  total_variables: None
+  n_clusters : [1,1]
+  max_retry: 8
+  eps_limit: 1e30
+  max_number_of_points: 200
+  type_of_sampling_points: constant
+  predict_c: True
+  constants:
+    num_constants: 0
+    additive:
+      max: 1
+      min: -1
+    multiplicative:
+      max: 1
+      min: -1
+
+# =============================================================================
+# Model Architecture
+# =============================================================================
+architecture:
+  num_queries: 10
+  batch_size: 10
+  epochs: 200
+  points_dim_input: 187
+  dim_hidden: 512
+  sinuisodal_embeddings: false
+  dec_pf_dim: 512
+  dropout: 0.0
+  num_features: 10
+  ln: true
+  num_inds: 50
+  activation: "relu"
+  bit16: true
+  norm: true
+  linear: false
+  input_normalization: false
+  mean: 0.5
+  std: 0.5
+  n_l_enc: 4
+  dec_layers: 8
+  n_l_points_encoder: 4
+  lr: 0.00001
+  src_pad_idx: 0
+  trg_pad_idx: 0
+  output_dim: 60
+  length_eq: 100
+  dim_input: 11
+  num_heads: 8
+
+  # Repair head
+  repair_enable: true
+  repair_train: true
+  repair_only: true
+  repair_only_freeze_ar: true
+  stage_repair_finetune: false
+  stage_repair_start_epoch: 1
+  stage_repair_freeze_encoder: false
+
+  repair_layers: 4
+  repair_dec_pf_dim: 512
+  repair_dropout: 0.0
+  repair_sinuisodal_embeddings: true
+
+  # Training-state sources
+  repair_source_use_ar: true
+  repair_source_use_synth: true
+  repair_source_use_rollout: false
+  repair_source_rollout_prob: 0.0
+  repair_source_rollout_steps: 10
+
+  # Source-chain construction and chain-state sampling
+  repair_chain_depth_min: 1
+  repair_chain_depth_max: 8
+  repair_chain_resample_attempts: 1
+  repair_chain_state_sampling: uniform
+  repair_supervision_mode: full_chain_single_edit
+
+  # Rooted frontier and edit-chain construction
+  repair_frontier_lambda: 0.15
+  repair_direct_rewrite_max_nodes: 5
+
+  # Inference-time revision budget and selection threshold
+  repair_conf_threshold: 0.5
+  repair_tagger_keep_weight: 0.5
+  repair_tagger_keep_self_prob: 0.15
+  repair_tagger_use_action_mask: true
+  repair_tagger_class_balance_power: 0.5
+  repair_tagger_min_class_prop: 0.01
+  repair_tagger_max_class_weight: 4.0
+  repair_tagger_replace_weight: 1.0
+  repair_tagger_delete_weight: 1
+  repair_tagger_rewrite_weight: 1.0
+  repair_tagger_insert_weight: 1.0
+
+  # Synthetic corruption action balancing (weights apply over feasible forward ops)
+  repair_corruption_weight_replace: 1.   # forward leaf/op replace -> reverse REPLACE
+  repair_corruption_weight_delete: 1    # forward leaf_insert -> reverse DELETE_SUBTREE
+  repair_corruption_weight_rewrite: 1.0   # forward subtree_replace -> reverse REWRITE_SUBTREE
+  repair_corruption_weight_insert: 1.0    # forward subtree_delete -> reverse INSERT
+
+
+
+  # Legality masking / tag tokens
+  forbidden_logit_value: -10000.0
+  repair_editor_use_tag_tokens: true
+  repair_editor_use_action_embedding: false
+  repair_editor_use_infill_mask: true
+  repair_tag_repl_str: "<repl:0>"
+  repair_tag_insert_str: "<insert:0>"
+
+# =============================================================================
+# Inference & BFGS Settings
+# =============================================================================
+inference:
+  beam_size: 30
+  device: "cuda"
+  eval_seed: 0
+  return_baseline_and_repair: true
+  no_c_in_pow: False
+
+  use_repair: true
+  repair_seed_topk: 10
+  repair_max_iters: 10
+  repair_conf: 0.5
+  repair_bfgs_stop_mse: 0.00001
+  repair_skip_if_baseline_r2_ge: 1.0
+
+  bfgs:
+    activated: True
+    max_workers: 5
+    n_restarts: 3
+    add_coefficients_if_not_existing: False
+    idx_remove: False
+    normalization_type: MSE
+    normalization_o: False
+    stop_time: 1e9
+    prune_threshold: 1e-3
+    prune_tolerance: 1.05
+
+# =============================================================================
+# Hydra Settings
+# =============================================================================
+hydra:
+  run:
+    dir: results/
